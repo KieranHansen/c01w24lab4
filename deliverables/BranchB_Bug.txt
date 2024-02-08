@@ -1,0 +1,1 @@
+The reason for the inability to delete note items was due to a missing database call in the backend. Before these commits remedied the issue, when the delete function was called in the backend we would simply log in the console that we were attempting to delete something. The actual database interaction had yet to be implemented.
