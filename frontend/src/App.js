@@ -13,6 +13,8 @@ function App() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogNote, setDialogNote] = useState(null)
 
+  onChangeColor={onChangeColor}
+
   
   // -- Database interaction functions --
   useEffect(() => {
@@ -135,7 +137,7 @@ function App() {
         <div style={dialogOpen ? AppStyle.dimBackground : {}}>
           <h1 style={AppStyle.title}>QuirkNotes</h1>
           <h4 style={AppStyle.text}>The best note-taking app ever </h4>
-
+  
           <div style={AppStyle.notesSection}>
             {loading ?
             <>Loading...</>
@@ -148,6 +150,7 @@ function App() {
                 entry={entry} 
                 editNote={editNote} 
                 deleteNote={deleteNote}
+                onChangeColor={onChangeColor}
                 />
               </div>
               )
@@ -159,7 +162,7 @@ function App() {
             </div>
             }
           </div>
-
+  
           <button onClick={postNote}>Post Note</button>
           {notes && notes.length > 0 && 
           <button
@@ -167,9 +170,9 @@ function App() {
               >
               Delete All Notes
           </button>}
-
+  
         </div>
-
+  
         <Dialog
           open={dialogOpen}
           initialNote={dialogNote}
@@ -177,7 +180,7 @@ function App() {
           postNote={postNoteState}
           patchNote={patchNoteState}
           />
-
+  
       </header>
     </div>
   );
