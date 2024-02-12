@@ -1,7 +1,67 @@
+Create a new functional component in the frontend/src directory called `NoteSearch.js`
+```jsx
+import React from 'react';
+
+const NoteSearch = ({ searchQuery, setSearchQuery }) => {
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Search notes by title..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{ margin: '20px 0', padding: '10px', width: 'calc(100% - 40px)' }}
+      />
+      <button onClick={() => setSearchQuery("")} style={{ padding: '10px' }}>Clear Search</button>
+    </div>
+  );
+};
+
+export default NoteSearch;
+
+```
+
+In App.js, add the following:
+
+```jsx
+import NoteSearch from "./NoteSearch";
+...
+const [searchQuery, setSearchQuery] = useState("");
+...
+
+const filteredNotes = searchQuery
+? notes.filter(note =>
+    note.title.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+: notes;
+
+...
+<NoteSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+...
+
+filteredNotes ?
+filteredNotes.map((entry) => {
+  return (
+  <div key={entry._id}>
+    <Note
+    entry={entry} 
+    editNote={editNote} 
+    deleteNote={deleteNote}
+    />
+  </div>
+  )
+})
+```
+
+
+See the full source code of App.js:
+
+```jsx
 import React, {useState, useEffect} from "react"
 import './App.css';
 import Dialog from "./Dialog";
 import Note from "./Note";
+import NoteSearch from "./NoteSearch";
 
 function App() {
 
@@ -12,9 +72,7 @@ function App() {
   // -- Dialog props-- 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogNote, setDialogNote] = useState(null)
-
-  onChangeColor={onChangeColor}
-
+  const [searchQuery, setSearchQuery] = useState("");
   
   // -- Database interaction functions --
   useEffect(() => {
@@ -40,29 +98,22 @@ function App() {
     getNotes()
   }, [])
 
-const deleteNote = async (entry) => {
+  const deleteNote = async (entry) => {
+    deleteNoteState(entry._id);
+
     try {
-      await fetch(`http://localhost:4000/deleteNote/${entry._id}`, {
+      const response = await fetch(`http://localhost:4000/deleteNote/${entry._id}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json"
         },
-      })
-      .then(async (response) => {
-        if (!response.ok) {
-          console.log("Served failed:", response.status)
-          alert("Failed to delete note!")
-        } else {
-            await response.json().then(() => {
-            deleteNoteState(entry._id)
-        }) 
-        }
-      })
+      });
+  
+      if (!response.ok) {
+        console.log("Server failed to delete the note:", response.status);
+      }
     } catch (error) {
-      console.log("Delete function failed:", error)
-      alert("Failed to delete note!")
-    } finally {
-      setLoading(false)
+      console.error("Delete function failed:", error);
     }
   }
 
@@ -138,26 +189,34 @@ const deleteNote = async (entry) => {
     }))
   }
 
+
+  const filteredNotes = searchQuery
+  ? notes.filter(note =>
+      note.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  : notes;
+
   return (
     <div className="App">
       <header className="App-header">
         <div style={dialogOpen ? AppStyle.dimBackground : {}}>
           <h1 style={AppStyle.title}>QuirkNotes</h1>
           <h4 style={AppStyle.text}>The best note-taking app ever </h4>
-  
+
+          <NoteSearch searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+
           <div style={AppStyle.notesSection}>
             {loading ?
             <>Loading...</>
             : 
-            notes ?
-            notes.map((entry) => {
+            filteredNotes ?
+            filteredNotes.map((entry) => {
               return (
               <div key={entry._id}>
                 <Note
                 entry={entry} 
                 editNote={editNote} 
                 deleteNote={deleteNote}
-                onChangeColor={onChangeColor}
                 />
               </div>
               )
@@ -169,7 +228,7 @@ const deleteNote = async (entry) => {
             </div>
             }
           </div>
-  
+
           <button onClick={postNote}>Post Note</button>
           {notes && notes.length > 0 && 
           <button
@@ -177,9 +236,9 @@ const deleteNote = async (entry) => {
               >
               Delete All Notes
           </button>}
-  
+
         </div>
-  
+
         <Dialog
           open={dialogOpen}
           initialNote={dialogNote}
@@ -187,7 +246,7 @@ const deleteNote = async (entry) => {
           postNote={postNoteState}
           patchNote={patchNoteState}
           />
-  
+
       </header>
     </div>
   );
@@ -213,3 +272,6 @@ const AppStyle = {
     margin: "0px"
   }
 }
+
+
+```
